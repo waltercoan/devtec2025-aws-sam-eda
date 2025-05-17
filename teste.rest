@@ -1,0 +1,17 @@
+### GET Hello World
+GET http://127.0.0.1:3000/hello
+
+### POST Incluir um novo espectador
+POST https://qpphi2q647.execute-api.sa-east-1.amazonaws.com/Prod/espectadores
+Content-Type: application/json
+
+{
+    "nome": "Walter Coan",
+    "cep": "88704-650"
+}
+
+### GET Listar todos os pontos
+GET https://qpphi2q647.execute-api.sa-east-1.amazonaws.com/Prod/pontos
+
+### GET 
+GET https://brasilapi.com.br/api/cep/v2/89202135
