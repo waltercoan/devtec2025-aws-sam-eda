@@ -4,6 +4,14 @@ Apresentação realizada 22/05/2025 no evento devTEC 2025 em Tubarão Santa Cata
 
 [![My Skills](https://skillicons.dev/icons?i=aws,python,typescript,angular,docker,git,linux)](https://skillicons.dev)
 
+## Arquitetura
+
+![Arquitetura](./diagramas/diagrama.png)
+
+[Download Slides](./diagramas/devtec2025-aws-sam-eda.pdf)
+
+[![Demo](https://img.youtube.com/vi/o7UrJ7gBzGk/0.jpg)](https://www.youtube.com/watch?v=o7UrJ7gBzGk)
+
 [Grade do Evento](https://devtec.com.br/)
 
 ### Configuração do ambiente
