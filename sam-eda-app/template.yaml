@@ -1,0 +1,199 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  sam-eda-app
+  Sample SAM Template for sam-eda-app
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+    Tracing: Active
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /hello
+            Method: get
+  EspectadoresFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: EspectadoresFunction
+      CodeUri: espectadores/
+      Handler: handler.handler
+      Runtime: python3.12
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          ESPECTADORES_TABLE_NAME: !Ref espectadores
+          ESPECTADORES_TABLE_ARN: !GetAtt espectadores.Arn
+      Events:
+        ServerlessRestApiPOSTespectadores:
+          Type: Api
+          Properties:
+            Path: /espectadores
+            Method: POST
+        ServerlessRestApiOPTIONSespectadores:
+          Type: Api
+          Properties:
+            Path: /espectadores
+            Method: OPTIONS
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref espectadores
+  EspectadoresFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${EspectadoresFunction}
+  espectadores:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: cep
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: cep
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  EspectadoresQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 345600
+  EspectadoresStreamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: EspectadoresStreamFunction
+      CodeUri: espectadoresstream/
+      Handler: handler.handler
+      Runtime: python3.12
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          ESPECTADORESQUEUE_QUEUE_NAME: !GetAtt EspectadoresQueue.QueueName
+          ESPECTADORESQUEUE_QUEUE_ARN: !GetAtt EspectadoresQueue.Arn
+          ESPECTADORESQUEUE_QUEUE_URL: !Ref EspectadoresQueue
+      Events:
+        espectadores:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt espectadores.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 1
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt EspectadoresQueue.QueueName
+  EspectadoresStreamFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${EspectadoresStreamFunction}
+  ConvCEPLatLonFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: ConvCEPLatLonFunction
+      CodeUri: convceplatlon/
+      Handler: handler.handler
+      Runtime: python3.12
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Events:
+        EspectadoresQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt EspectadoresQueue.Arn
+            BatchSize: 1
+      Environment:
+        Variables:
+          PONTOS_TABLE_NAME: !Ref pontos
+          PONTOS_TABLE_ARN: !GetAtt pontos.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref pontos
+        - DynamoDBCrudPolicy:
+            TableName: !Ref pontos
+  ConvCEPLatLonFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ConvCEPLatLonFunction}
+  PontosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: PontosFunction
+      CodeUri: pontos/
+      Handler: handler.handler
+      Runtime: python3.12
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          PONTOS_TABLE_NAME: !Ref pontos
+          PONTOS_TABLE_ARN: !GetAtt pontos.Arn
+      Events:
+        ServerlessRestApiGETpontos:
+          Type: Api
+          Properties:
+            Path: /pontos
+            Method: GET
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref pontos
+        - DynamoDBCrudPolicy:
+            TableName: !Ref pontos
+  PontosFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${PontosFunction}
+  pontos:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: cep
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: cep
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HelloWorldApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/

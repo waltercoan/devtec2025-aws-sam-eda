@@ -1,0 +1,3 @@
+jsonschema
+boto3
+requests
