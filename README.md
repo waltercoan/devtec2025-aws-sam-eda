@@ -8,11 +8,25 @@ Apresentação realizada 22/05/2025 no evento devTEC 2025 em Tubarão Santa Cata
 
 ![Arquitetura](./diagramas/diagrama.png)
 
+## Evento
+
 [Download Slides](./diagramas/devtec2025-aws-sam-eda.pdf)
 
+### Demo Youtube
 [![Demo](https://img.youtube.com/vi/o7UrJ7gBzGk/0.jpg)](https://www.youtube.com/watch?v=o7UrJ7gBzGk)
 
 [Grade do Evento](https://devtec.com.br/)
+
+### Demo live
+[Aplicação](http://devtec2025.s3-website-sa-east-1.amazonaws.com/)
+
+
+### Fotos
+|  |  |
+| -------- | ------- |
+| ![Foto1](./img/img1.jpg) | ![Foto2](./img/img2.jpg) |
+| ![Foto3](./img/img3.jpg) | ![Foto4](./img/img4.jpg) |
+
 
 ### Configuração do ambiente
 - Configurar as credenciais programáticas no ambiente AWS
